@@ -651,6 +651,7 @@ class SqlAlchemyDataset(MetaSqlAlchemyDataset):
 
     def get_column_nonnull_count(self, column):
         ignore_values = [None]
+
         count_query = sa.select(
             [
                 sa.func.count().label("element_count"),
@@ -659,7 +660,9 @@ class SqlAlchemyDataset(MetaSqlAlchemyDataset):
                         [
                             (
                                 sa.or_(
-                                    sa.column(column).in_(ignore_values),
+                                    sa.column(column).in_([val for vol in ignore_values if val is not None]) 
+                                    if ignore_values != [None]
+                                    else False,
                                     # Below is necessary b/c sa.in_() uses `==` but None != None
                                     # But we only consider this if None is actually in the list of ignore values
                                     sa.column(column).is_(None)
